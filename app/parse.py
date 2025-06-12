@@ -58,9 +58,9 @@ def parse_page(page: BeautifulSoup) -> list[Product]:
     return result
 
 
-def get_computers() -> list[Product]:
+def get_products(product_url: str) -> list[Product]:
     result = []
-    for page in tqdm(page_generator_single(COMPUTERS_URL)):
+    for page in tqdm(page_generator_single(product_url)):
         result.extend(parse_page(page))
     return result
 
@@ -74,21 +74,21 @@ def get_phones() -> list[Product]:
 
 def get_laptops() -> list[Product]:
     result = []
-    for page in tqdm(page_generator_e_commerce(LAPTOPS_URL)):
+    for page in tqdm(page_generator_commerce(LAPTOPS_URL)):
         result.extend(parse_page(page))
     return result
 
 
 def get_tablets() -> list[Product]:
     result = []
-    for page in tqdm(page_generator_e_commerce(TABLETS_URL)):
+    for page in tqdm(page_generator_commerce(TABLETS_URL)):
         result.extend(parse_page(page))
     return result
 
 
 def get_touch() -> list[Product]:
     result = []
-    for page in tqdm(page_generator_e_commerce(TOUCH_URL)):
+    for page in tqdm(page_generator_commerce(TOUCH_URL)):
         result.extend(parse_page(page))
     return result
 
@@ -106,8 +106,7 @@ def page_generator_single(url: str) -> Generator[BeautifulSoup, None, None]:
         yield BeautifulSoup(content, "lxml")
 
 
-def page_generator_e_commerce(url: str)\
-        -> Generator[BeautifulSoup, None, None]:
+def page_generator_commerce(url: str) -> Generator[BeautifulSoup, None, None]:
     """
     Generator for paginated e-commerce pages (e.g. laptops, computers)
     """
@@ -125,23 +124,6 @@ def page_generator_e_commerce(url: str)\
 
         yield soup
         page_counter += 1
-
-
-def page_generator(url: str) -> Generator[BeautifulSoup, None, None]:
-    """
-    Generate a BeautifulSoup object from page content for each page
-    """
-    page_counter = 0
-    while True:
-        page_counter += 1
-        page_url = urljoin(url, f"page/{page_counter}/")
-        if content := fetch_page_content(page_url):
-            yield BeautifulSoup(content, "lxml")
-        elif not content:
-            break
-        soup = BeautifulSoup(content, "lxml")
-        if not soup.select(".quote"):
-            break
 
 
 def fetch_page_content(url: str) -> bytes | None:
@@ -167,15 +149,15 @@ def export_to_csv(products: list[Product], output_csv_path: str) -> None:
 def get_all_products() -> None:
     home_page_info = get_home()
     export_to_csv(home_page_info, "home.csv")
-    computers_page_info = get_computers()
+    computers_page_info = get_products(COMPUTERS_URL)
     export_to_csv(computers_page_info, "computers.csv")
-    phones_page_info = get_phones()
+    phones_page_info = get_products(PHONES_URL)
     export_to_csv(phones_page_info, "phones.csv")
-    laptops_page_info = get_laptops()
+    laptops_page_info = get_products(LAPTOPS_URL)
     export_to_csv(laptops_page_info, "laptops.csv")
-    tablets_page_info = get_tablets()
+    tablets_page_info = get_products(TABLETS_URL)
     export_to_csv(tablets_page_info, "tablets.csv")
-    touch_page_info = get_touch()
+    touch_page_info = get_products(TOUCH_URL)
     export_to_csv(touch_page_info, "touch.csv")
 
 
